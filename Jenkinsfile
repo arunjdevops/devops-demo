@@ -6,10 +6,6 @@ pipeline {
         DOCKER_TAG   = "latest"
     }
 
-    tools {
-        git 'Default'
-    }
-
     stages {
 
         stage('Checkout Code') {
@@ -51,21 +47,10 @@ pipeline {
             }
         }
 
-        stage('Ansible Configuration') {
+        stage('Deploy to Tomcat via Ansible') {
             steps {
                 dir('ansible') {
                     sh 'ansible-playbook -i inventory playbook.yml'
-                }
-            }
-        }
-
-        stage('Deploy to Kubernetes') {
-            steps {
-                withCredentials([file(credentialsId: 'kubeconfig', variable: 'KUBECONFIG')]) {
-                    sh '''
-                    kubectl apply -f k8s/deployment.yaml
-                    kubectl apply -f k8s/service.yaml
-                    '''
                 }
             }
         }
@@ -73,11 +58,10 @@ pipeline {
 
     post {
         success {
-            echo "✅ Deployment Successful"
+            echo "✅ Tomcat Deployment Successful"
         }
         failure {
             echo "❌ Pipeline Failed"
         }
     }
 }
-
